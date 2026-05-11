@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Thông Tin Chốt Đơn</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; color: #333; }
+        .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #d32f2f; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+        .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .btn-send { width: 100%; padding: 15px; background: #d32f2f; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .loading { display: none; text-align: center; font-style: italic; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🛒 THÔNG TIN ĐƠN HÀNG</h2>
+        <form id="orderForm">
+            <div class="form-group">
+                <label>🆔 ID TikTok:</label>
+                <input type="text" name="tiktok_id" placeholder="VD: shop_thoitrang" required>
+            </div>
+            <div class="form-group">
+                <label>📱 Số điện thoại:</label>
+                <input type="tel" name="phone" placeholder="Nhập SĐT nhận hàng" required>
+            </div>
+            <div class="form-group">
+                <label>📍 Địa chỉ nhận hàng:</label>
+                <textarea name="address" rows="2" placeholder="Số nhà, tên đường, phường/xã..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>📦 Sản phẩm đặt mua:</label>
+                <div class="item-row" style="font-size: 12px; color: gray; font-weight: bold;">
+                    <span>MÃ SP</span><span>SIZE</span><span>SL</span>
+                </div>
+                <div id="items-list">
+                    <div class="item-row">
+                        <input type="text" name="masp" placeholder="Mã" required>
+                        <input type="text" name="size" placeholder="S/M/L">
+                        <input type="number" name="qty" value="1" min="1">
+                    </div>
+                </div>
+                <button type="button" onclick="addRow()" style="margin-top:5px; background:none; border:1px solid #ccc; border-radius:4px; padding:5px 10px; cursor:pointer;">+ Thêm món khác</button>
+            </div>
+            <div class="form-group">
+                <label>💵 Số tiền đã cọc (nếu có):</label>
+                <input type="number" name="deposit" value="0">
+            </div>
+            <button type="submit" class="btn-send" id="submitBtn">GỬI THÔNG TIN ĐƠN HÀNG</button>
+            <p class="loading" id="loader">Đang xử lý, vui lòng đợi...</p>
+        </form>
+    </div>
+
+    <script>
+        function addRow() {
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            div.innerHTML = '<input type="text" name="masp" placeholder="Mã" required><input type="text" name="size" placeholder="S/M/L"><input type="number" name="qty" value="1" min="1">';
+            document.getElementById('items-list').appendChild(div);
+        }
+
+        document.getElementById('orderForm').onsubmit = function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const loader = document.getElementById('loader');
+            btn.style.display = 'none';
+            loader.style.display = 'block';
+
+            const formData = new FormData(this);
+            const data = {
+                tiktok_id: formData.get('tiktok_id'),
+                phone: formData.get('phone'),
+                address: formData.get('address'),
+                deposit: formData.get('deposit'),
+                items: []
+            };
+
+            const masps = formData.getAll('masp');
+            const sizes = formData.getAll('size');
+            const qtys = formData.getAll('qty');
+            for(let i=0; i<masps.length; i++) {
+                data.items.push(`${masps[i]}${sizes[i]} ${qtys[i]}`);
+            }
+            data.items_str = data.items.join(", ");
+
+            // Thay LINK_WEB_APP_GOOGLE của bạn vào đây
+            fetch('https://script.google.com/macros/s/XXX/exec', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert("✅ Gửi thành công! Shop sẽ liên hệ xác nhận đơn cho mình sớm nhất nha.");
+                location.reload();
+            })
+            .catch(err => {
+                alert("❌ Có lỗi xảy ra, vui lòng thử lại!");
+                btn.style.display = 'block';
+                loader.style.display = 'none';
+            });
+        };
+    </script>
+</body>
+</html>
